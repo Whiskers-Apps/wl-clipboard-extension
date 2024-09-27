@@ -1,0 +1,11 @@
+[package]
+name = "whiskers-launcher-clipboard-extension"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+whiskers-launcher-rs = { git = "https://github.com/Whiskers-Apps/whiskers-launcher-rs.git" }
+dirs = "5.0.1"
+sniffer-rs = "1.0.1"
+serde = { version = "1.0.210", features = ["derive"] }
+bincode = "1.3.3"
