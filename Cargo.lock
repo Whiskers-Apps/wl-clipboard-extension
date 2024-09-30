@@ -1117,6 +1117,7 @@ version = "0.1.0"
 dependencies = [
  "bincode",
  "dirs",
+ "powershell_script",
  "serde",
  "sniffer-rs",
  "whiskers-launcher-rs",

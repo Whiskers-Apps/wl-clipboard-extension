@@ -3,9 +3,9 @@ use std::{
     process::{exit, Command},
 };
 
-use whiskers_launcher_rs::
-    api::extensions::{get_dialog_response, DialogResponse, ExtensionRequest}
-;
+use whiskers_launcher_rs::api::extensions::{
+    get_dialog_response, DialogResponse, ExtensionRequest,
+};
 
 use crate::clipboard::{get_clipboard, write_clipboard, ImageClip, TextClip};
 
@@ -48,24 +48,34 @@ pub fn run_actions(request: ExtensionRequest) {
     }
 
     if action == "copy-image" {
-        if is_wayland() {
-            let args = request.args.clone().unwrap();
-            let id: usize = args.get(0).unwrap().parse().unwrap();
-            let clip: ImageClip = clipboard
-                .image_clips
-                .iter()
-                .find(|c| c.id == id)
-                .unwrap()
-                .to_owned();
+        let args = request.args.clone().unwrap();
+        let id: usize = args.get(0).unwrap().parse().unwrap();
+        let clip: ImageClip = clipboard
+            .image_clips
+            .iter()
+            .find(|c| c.id == id)
+            .unwrap()
+            .to_owned();
 
-            Command::new("sh")
-                .arg("-c")
-                .arg(format!(
-                    "cat {} | wl-copy --type image/png",
-                    clip.path.into_os_string().into_string().unwrap()
-                ))
-                .spawn()
-                .expect("Error copying image");
+        let clip_path_str = clip.path.into_os_string().into_string().unwrap();
+
+        if is_wayland() {
+            if cfg!(target_os = "linux") {
+                Command::new("sh")
+                    .arg("-c")
+                    .arg(format!("cat {} | wl-copy --type image/png", &clip_path_str))
+                    .spawn()
+                    .expect("Error copying image");
+            }
+        }
+
+        if cfg!(target_os = "windows") {
+            let script = r#"
+Add-Type -AssemblyName System.Windows.Forms
+[System.Windows.Forms.Clipboard]::SetImage([System.Drawing.Image]::FromFile("%path%"))"#
+                .replace("%path%", &clip_path_str);
+
+            powershell_script::run(&script).expect("Error executing copy command");
         }
 
         exit(0)

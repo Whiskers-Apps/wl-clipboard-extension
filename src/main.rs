@@ -1,3 +1,6 @@
+//REQUIRED FOR WINDOWS EXTENSIONS
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+
 use actions::run_actions;
 use clipboard::init_clipboard;
 use results::show_results;
@@ -26,3 +29,5 @@ fn main() {
         }
     }
 }
+
+
