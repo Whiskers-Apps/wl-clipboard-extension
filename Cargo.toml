@@ -9,3 +9,6 @@ sniffer-rs = "1.1.1"
 serde = { version = "1.0.210", features = ["derive"] }
 bincode = "1.3.3"
 whiskers-launcher-core = "0.3.0"
+
+[target.'cfg(target_os = "windows")'.dependencies]
+powershell_script = "1.1.0"
