@@ -1353,9 +1353,9 @@ dependencies = [
 
 [[package]]
 name = "whiskers-launcher-core"
-version = "0.3.0"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b41769c27da3e516c8092a4d1c25cf39320fdafa8a98638d02537d1a5df087a9"
+checksum = "b30ec1ec0ebf1cbfe70003c056d1f68787eb0f6e6e3a929136408ea73d4b8be6"
 dependencies = [
  "bincode",
  "dirs 5.0.1",
