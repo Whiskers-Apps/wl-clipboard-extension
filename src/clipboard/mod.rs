@@ -105,7 +105,7 @@ pub fn init_clipboard() {
 
 pub fn get_clipboard() -> Clipboard {
     let path = get_clipboard_path();
-    let bytes = fs::read(&path).expect("Error reading clipbaord");
+    let bytes = fs::read(&path).expect("Error reading clipboard");
     let clipboard = bincode::deserialize(&bytes).expect("Error deserializing clipboard");
     clipboard
 }

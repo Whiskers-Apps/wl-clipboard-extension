@@ -3,25 +3,19 @@ use std::{
     process::{exit, Command},
 };
 
-use whiskers_launcher_rs::
-    api::extensions::{get_dialog_response, DialogResponse, ExtensionRequest}
-;
+use whiskers_launcher_core::features::{core::extensions::get_form_response, extensions::ExtensionRequest};
 
 use crate::clipboard::{get_clipboard, write_clipboard, ImageClip, TextClip};
 
-pub fn run_actions(request: ExtensionRequest) {
-    let action = request.extension_action.unwrap();
+pub fn on_run_commands(request: ExtensionRequest) {
+    let command = request.command.unwrap();
     let mut clipboard = get_clipboard();
 
-    if action == "add-text" {
-        let response = get_dialog_response();
+    if command == "add-text" {
+        let response = get_form_response();
 
-        if !has_valid_results(vec!["name", "text"], response.clone()) {
-            send_error_message();
-        }
-
-        let name = response.clone().get_result_value("name").unwrap();
-        let text = response.clone().get_result_value("text").unwrap();
+        let name = response.get_result("name").unwrap().field_value;
+        let text = response.get_result("text").unwrap().field_value;
 
         let clip = TextClip::new(name, text);
         clipboard.text_clips.push(clip);
@@ -30,15 +24,11 @@ pub fn run_actions(request: ExtensionRequest) {
         exit(0)
     }
 
-    if action == "add-image" {
-        let response = get_dialog_response();
+    if command == "add-image" {
+        let response = get_form_response();
 
-        if !has_valid_results(vec!["name", "path"], response.clone()) {
-            send_error_message();
-        }
-
-        let name = response.clone().get_result_value("name").unwrap();
-        let path = response.clone().get_result_value("path").unwrap();
+        let name = response.get_result("name").unwrap().field_value;
+        let path = response.get_result("path").unwrap().field_value;
 
         let clip = ImageClip::new(name, path);
         clipboard.image_clips.push(clip);
@@ -47,9 +37,9 @@ pub fn run_actions(request: ExtensionRequest) {
         exit(0)
     }
 
-    if action == "copy-image" {
+    if command == "copy-image" {
         if is_wayland() {
-            let args = request.args.clone().unwrap();
+            let args = request.args;
             let id: usize = args.get(0).unwrap().parse().unwrap();
             let clip: ImageClip = clipboard
                 .image_clips
@@ -71,16 +61,12 @@ pub fn run_actions(request: ExtensionRequest) {
         exit(0)
     }
 
-    if action == "edit-text-clip" {
-        let response = get_dialog_response();
+    if command == "edit-text-clip" {
+        let response = get_form_response();
 
-        if !has_valid_results(vec!["name", "text"], response.clone()) {
-            send_error_message();
-        }
-
-        let name = response.clone().get_result_value("name").unwrap();
-        let text = response.clone().get_result_value("text").unwrap();
-        let args = response.args.unwrap();
+        let name = response.get_result("name").unwrap().field_value;
+        let text = response.get_result("text").unwrap().field_value;
+        let args = response.args;
         let id: usize = args.get(0).unwrap().parse().unwrap();
         let mut new_text_clips = Vec::<TextClip>::new();
 
@@ -100,8 +86,8 @@ pub fn run_actions(request: ExtensionRequest) {
         exit(0)
     }
 
-    if action == "delete-text-clip" {
-        let args = request.args.clone().unwrap();
+    if command == "delete-text-clip" {
+        let args = request.args;
         let id: usize = args.get(0).unwrap().parse().unwrap();
         let mut clipboard_mod = clipboard.clone();
         clipboard_mod.text_clips = clipboard
@@ -116,16 +102,12 @@ pub fn run_actions(request: ExtensionRequest) {
         exit(0)
     }
 
-    if action == "edit-image-clip" {
-        let response = get_dialog_response();
+    if command == "edit-image-clip" {
+        let response = get_form_response();
 
-        if !has_valid_results(vec!["name", "path"], response.clone()) {
-            send_error_message();
-        }
-
-        let name = response.clone().get_result_value("name").unwrap();
-        let path = response.clone().get_result_value("path").unwrap();
-        let args = response.args.unwrap();
+        let name = response.get_result("name").unwrap().field_value;
+        let path = response.get_result("path").unwrap().field_value;
+        let args = response.args;
         let id: usize = args.get(0).unwrap().parse().unwrap();
         let mut image_clips_mod = Vec::<ImageClip>::new();
 
@@ -145,8 +127,8 @@ pub fn run_actions(request: ExtensionRequest) {
         exit(0)
     }
 
-    if action == "delete-image-clip" {
-        let args = request.args.clone().unwrap();
+    if command == "delete-image-clip" {
+        let args = request.args;
         let id: usize = args.get(0).unwrap().parse().unwrap();
         let mut clipboard_mod = clipboard.clone();
         clipboard_mod.image_clips = clipboard
@@ -171,32 +153,4 @@ pub fn is_wayland() -> bool {
         Ok(session) => &session.to_lowercase() == "wayland",
         Err(_) => false,
     }
-}
-
-fn has_valid_results(fields: Vec<&str>, response: DialogResponse) -> bool {
-    for field in fields {
-        let result = response.clone().get_result_value(field);
-
-        if result.is_none() {
-            return false;
-        }
-
-        if result.unwrap().trim().is_empty() {
-            return false;
-        }
-    }
-
-    return true;
-}
-
-fn send_error_message() {
-    Command::new("sh")
-        .arg("-c")
-        .arg(format!(
-            "notify-send \"Form Error\" \"⚠️ Invalid fields. Action was canceled\""
-        ))
-        .spawn()
-        .expect("Error sending notification");
-
-    exit(1);
 }
