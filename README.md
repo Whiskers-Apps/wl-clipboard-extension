@@ -1,6 +1,8 @@
 # Clipboard Extension
 Quickly copy your favourite text and images to the clipboard 
 
+<img src="./preview.webp" width="400">
+
 ## Usage
 ## Add a text/image to the clipboard database
 Just run the extension, select the appropriate function and fill the fields
